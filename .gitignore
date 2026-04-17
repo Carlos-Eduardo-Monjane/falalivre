@@ -7,3 +7,28 @@ dataset/**/*.jpeg
 dataset/raw/
 dataset/training/
 dataset/validation/
+
+# Dataset e scripts (não vão para produção)
+scripts/
+*.py
+requirements.txt
+
+# Node
+node_modules/
+backend/node_modules/
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Modelos
+*.h5
+*.keras
+modelo_alfabeto/
