@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FalaLivre - Paciente</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
+        /* Container principal - Desktop */
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+        
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 16px;
+            }
+        }
+        
+        /* Cards corporativos */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        
+        .card-header {
+            padding: 16px 20px;
+            background: #fafbfc;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-header i {
+            color: #4a90e2;
+            font-size: 1.2rem;
+        }
+        
+        .card-header h2 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        /* Área da câmera */
+        .webcam-container {
+            position: relative;
+            background: #1a1a2e;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+        
+        #webcam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Gesto detectado */
+        .gesto-detectado {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            background: rgba(0,0,0,0.85);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideUp 0.2s ease;
+        }
+        
+        .gesto-detectado span {
+            color: #4ade80;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        /* Mensagem do médico - DESTAQUE */
+        .mensagem-medico-area {
+            background: #e8f0fe;
+            border-left: 4px solid #4a90e2;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .mensagem-medico-area .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .mensagem-medico-area .conteudo {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #1a1a2e;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        
+        .mensagem-medico-area .conteudo i {
+            color: #4a90e2;
+            margin-right: 8px;
+        }
+        
+        /* Último gesto */
+        .ultimo-gesto-area {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .ultimo-gesto-area .label {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .ultimo-gesto-area .gesto-texto {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        /* Grids */
+        .grid-frases {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-frase {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #2c3e50;
+        }
+        
+        .btn-frase:hover {
+            background: #4a90e2;
+            border-color: #4a90e2;
+            color: white;
+        }
+        
+        .grid-sintomas {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .card-sinal {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .card-sinal:hover {
+            border-color: #4a90e2;
+            background: #f0f7ff;
+        }
+        
+        .card-sinal i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .card-sinal span {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        
+        .grid-alfabeto {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-bottom: 20px;
+            max-height: 140px;
+            overflow-y: auto;
+        }
+        
+        .letra-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .letra-card:hover {
+            background: #4a90e2;
+            color: white;
+            border-color: #4a90e2;
+        }
+        
+        .historico {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .historico-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            border-left: 3px solid #4a90e2;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 10px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            margin-top: 12px;
+        }
+        
+        .btn-primary:hover {
+            background: #3a7bc8;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #e8f5e9;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            color: #2e7d32;
+            margin-bottom: 16px;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .confidence-bar {
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: #4ade80;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Coluna Principal - Câmera -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-camera"></i>
+                <h2>Double Giant: FalaLivre</h2>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div class="webcam-container">
+                    <video id="webcam" autoplay playsinline></video>
+                    <canvas id="canvas"></canvas>
+                    <div id="gestoDetectado" class="gesto-detectado" style="display: none;">
+                        <span id="gestoTexto"></span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="confidenceFill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Coluna Lateral -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Status -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="status">
+                        <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                        <span id="statusText">Conectado ao médico</span>
+                    </div>
+                    <div class="ultimo-gesto-area">
+                        <div class="label">ÚLTIMO GESTO ENVIADO</div>
+                        <div class="gesto-texto" id="ultimoGesto">Nenhum gesto</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mensagem do Médico - DESTAQUE -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-md"></i>
+                    <h2>MENSAGEM DO MÉDICO</h2>
+                </div>
+                <div class="card-body">
+                    <div class="mensagem-medico-area">
+                        <div class="conteudo" id="mensagemMedico">
+                            <i class="fas fa-comment-dots"></i> Aguardando mensagem...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Frases Rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>FRASES RÁPIDAS</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid-frases" id="frasesGrid"></div>
+                </div>
+            </div>
+            
+            <!-- Sintomas -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>SINTOMAS</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid-sintomas" id="gridSintomas"></div>
+                </div>
+            </div>
+            
+            <!-- Alfabeto -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-keyboard"></i>
+                    <h2>ALFABETO</h2>
+                </div>
+                <div class="card-body">
+                    <div class="grid-alfabeto" id="alfabetoGrid"></div>
+                </div>
+            </div>
+            
+            <!-- Histórico -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-history"></i>
+                    <h2>HISTÓRICO</h2>
+                </div>
+                <div class="card-body">
+                    <div class="historico" id="historico">
+                        <div class="historico-item">✨ Sistema iniciado</div>
+                    </div>
+                    <button class="btn-primary" id="btnLimpar">
+                        <i class="fas fa-trash-alt"></i> Limpar histórico
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        let filaMensagens = [];
+        let processandoFila = false;
+        
+        // ALFABETO
+        const ALFABETO_GESTOS = {
+            'A': (mao) => mao[8].y > mao[6].y && mao[4].x > mao[3].x,
+            'B': (mao) => [8,12,16,20].every(i => mao[i].y < mao[i-2].y),
+            'C': (mao) => Math.abs(mao[4].x - mao[8].x) < 0.1,
+            'D': (mao) => mao[8].y < mao[6].y && mao[12].y > mao[10].y,
+            'E': (mao) => [8,12,16,20].every(i => mao[i].y > mao[i-2].y),
+            'F': (mao) => Math.abs(mao[4].x - mao[8].x) < 0.05,
+            'G': (mao) => mao[8].x < mao[6].x,
+            'H': (mao) => mao[8].x < mao[6].x && mao[12].x < mao[10].x,
+            'I': (mao) => mao[20].y < mao[18].y && mao[8].y > mao[6].y,
+            'J': (mao) => mao[20].y < mao[18].y,
+            'K': (mao) => mao[8].y < mao[6].y && mao[12].y < mao[10].y,
+            'L': (mao) => mao[4].x < mao[3].x && mao[8].y < mao[6].y,
+            'M': (mao) => mao[12].y > mao[10].y && mao[16].y > mao[14].y,
+            'N': (mao) => mao[12].y > mao[10].y,
+            'O': (mao) => Math.abs(mao[4].x - mao[8].x) < 0.03,
+            'P': (mao) => mao[8].y > mao[6].y && mao[12].y < mao[10].y,
+            'Q': (mao) => mao[4].y > mao[3].y,
+            'R': (mao) => mao[8].x < mao[12].x,
+            'S': (mao) => [8,12,16,20].every(i => mao[i].y > mao[i-2].y),
+            'T': (mao) => mao[4].x > mao[3].x && mao[8].y > mao[6].y,
+            'U': (mao) => mao[8].y < mao[6].y && mao[12].y < mao[10].y,
+            'V': (mao) => mao[8].y < mao[6].y && mao[12].y < mao[10].y,
+            'W': (mao) => mao[8].y < mao[6].y && mao[12].y < mao[10].y && mao[16].y < mao[14].y,
+            'X': (mao) => mao[8].y > mao[6].y,
+            'Y': (mao) => mao[4].x < mao[3].x && mao[20].y < mao[18].y,
+            'Z': (mao) => mao[8].y < mao[6].y
+        };
+        
+        const GESTOS_CAMERA = [
+            { id: "indicador", nome: "☝️ Indicador", texto: "Sim", icone: "fa-hand-peace" },
+            { id: "punho", nome: "✊ Punho", texto: "Não", icone: "fa-hand-fist" },
+            { id: "mao_aberta", nome: "🖐️ Mão Aberta", texto: "Pare", icone: "fa-hand-paper" },
+            { id: "dois_dedos", nome: "✌️ Dois Dedos", texto: "Vitória", icone: "fa-hand-peace" },
+            { id: "tres_dedos", nome: "3️⃣ Três Dedos", texto: "Ajuda", icone: "fa-hand-peace" },
+            { id: "joia", nome: "👍 Joia", texto: "Bem", icone: "fa-thumbs-up" }
+        ];
+        
+        const FRASES_RAPIDAS = [
+            { id: "frase1", nome: "Emergência", texto: "PRECISO DE AJUDA URGENTE!", icone: "fa-ambulance" },
+            { id: "frase2", nome: "Dor Forte", texto: "ESTOU COM MUITA DOR", icone: "fa-head-side-medical" },
+            { id: "frase3", nome: "Febre Alta", texto: "ESTOU COM FEBRE ALTA", icone: "fa-temperature-high" },
+            { id: "frase4", nome: "Medicação", texto: "PRECISO TOMAR MEU REMÉDIO", icone: "fa-capsules" }
+        ];
+        
+        const SINTOMAS = [
+            { id: "dor", nome: "Dor", texto: "Estou com dor", icone: "fa-head-side-medical", cor: "#dc3545" },
+            { id: "febre", nome: "Febre", texto: "Estou com febre", icone: "fa-temperature-high", cor: "#ffc107" },
+            { id: "nausea", nome: "Náusea", texto: "Estou com náusea", icone: "fa-stomach", cor: "#28a745" },
+            { id: "cabeca", nome: "Dor de Cabeça", texto: "Minha cabeça dói", icone: "fa-brain", cor: "#17a2b8" },
+            { id: "medicacao", nome: "Medicação", texto: "Preciso de medicação", icone: "fa-capsules", cor: "#6f42c1" },
+            { id: "agua", nome: "Sede", texto: "Estou com sede", icone: "fa-tint", cor: "#0dcaf0" },
+            { id: "ajuda", nome: "Ajuda", texto: "Preciso de ajuda", icone: "fa-handshake", cor: "#dc3545" },
+            { id: "obrigado", nome: "Obrigado", texto: "Obrigado", icone: "fa-hand-peace", cor: "#20c997" },
+            { id: "sim", nome: "Sim", texto: "Sim", icone: "fa-check-circle", cor: "#198754" },
+            { id: "nao", nome: "Não", texto: "Não", icone: "fa-times-circle", cor: "#dc3545" }
+        ];
+        
+        let videoElement = document.getElementById('webcam');
+        let canvasElement = document.getElementById('canvas');
+        let canvasCtx = canvasElement.getContext('2d');
+        let hands = null;
+        let cameraAtiva = false;
+        let ultimoTempoEnvio = 0;
+        
+        async function processarFila() {
+            if (processandoFila) return;
+            if (filaMensagens.length === 0) return;
+            processandoFila = true;
+            while (filaMensagens.length > 0) {
+                const mensagem = filaMensagens.shift();
+                await enviarMensagemComDelay(mensagem);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+            processandoFila = false;
+        }
+        
+        function adicionarNaFila(texto) {
+            filaMensagens.push(texto);
+            processarFila();
+        }
+        
+        async function enviarMensagemComDelay(texto) {
+            return new Promise((resolve) => {
+                socket.emit('gesto_reconhecido', { texto: texto });
+                document.getElementById('ultimoGesto').innerHTML = texto.substring(0, 40);
+                adicionarHistorico('Você', texto);
+                setTimeout(resolve, 500);
+            });
+        }
+        
+        function enviarMensagem(texto) {
+            adicionarNaFila(texto);
+        }
+        
+        function enviarLetra(letra) {
+            adicionarHistorico('Letra', letra);
+            mostrarGestoDetectado(`Letra: ${letra}`, 0.9);
+            enviarMensagem(letra);
+        }
+        
+        async function inicializarMediaPipe() {
+            try {
+                hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+                });
+                hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                hands.onResults(processHandLandmarks);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                videoElement.srcObject = stream;
+                videoElement.addEventListener('loadeddata', () => {
+                    cameraAtiva = true;
+                    detectarGestos();
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+            }
+        }
+        
+        async function detectarGestos() {
+            if (!cameraAtiva) return;
+            if (hands && videoElement.readyState === 4) {
+                await hands.send({ image: videoElement });
+            }
+            requestAnimationFrame(detectarGestos);
+        }
+        
+        function processHandLandmarks(results) {
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            if (canvasElement.width !== videoElement.videoWidth) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            }
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    for (const landmark of landmarks) {
+                        const x = landmark.x * canvasElement.width;
+                        const y = landmark.y * canvasElement.height;
+                        canvasCtx.beginPath();
+                        canvasCtx.arc(x, y, 4, 0, 2 * Math.PI);
+                        canvasCtx.fillStyle = '#4a90e2';
+                        canvasCtx.fill();
+                        canvasCtx.strokeStyle = '#ffffff';
+                        canvasCtx.lineWidth = 1.5;
+                        canvasCtx.stroke();
+                    }
+                    const connections = [
+                        [0,1], [1,2], [2,3], [3,4], [0,5], [5,6], [6,7], [7,8],
+                        [5,9], [9,10], [10,11], [11,12], [9,13], [13,14], [14,15], [15,16],
+                        [13,17], [0,17], [17,18], [18,19], [19,20]
+                    ];
+                    for (const connection of connections) {
+                        const start = landmarks[connection[0]];
+                        const end = landmarks[connection[1]];
+                        if (start && end) {
+                            const startX = start.x * canvasElement.width;
+                            const startY = start.y * canvasElement.height;
+                            const endX = end.x * canvasElement.width;
+                            const endY = end.y * canvasElement.height;
+                            canvasCtx.beginPath();
+                            canvasCtx.moveTo(startX, startY);
+                            canvasCtx.lineTo(endX, endY);
+                            canvasCtx.strokeStyle = '#4a90e2';
+                            canvasCtx.lineWidth = 2;
+                            canvasCtx.stroke();
+                        }
+                    }
+                }
+                simularReconhecimentoGesto(results.multiHandLandmarks);
+            }
+        }
+        
+        function simularReconhecimentoGesto(landmarks) {
+            const mao = landmarks[0];
+            if (!mao) return;
+            
+            for (const [letra, condicao] of Object.entries(ALFABETO_GESTOS)) {
+                try {
+                    if (condicao(mao)) {
+                        const agora = Date.now();
+                        if (agora - ultimoTempoEnvio > 1500) {
+                            ultimoTempoEnvio = agora;
+                            enviarLetra(letra);
+                            mostrarGestoDetectado(`Letra: ${letra}`, 0.9);
+                        }
+                        return;
+                    }
+                } catch(e) { continue; }
+            }
+            
+            const polegarCima = mao[4].y < mao[3].y;
+            const indicadorEsticado = mao[8].y < mao[5].y;
+            const dedosEsticados = [mao[8].y < mao[5].y, mao[12].y < mao[9].y, mao[16].y < mao[13].y, mao[20].y < mao[17].y];
+            const qtdDedos = dedosEsticados.filter(Boolean).length;
+            let gestoReconhecido = null;
+            if (qtdDedos === 1 && indicadorEsticado) gestoReconhecido = 'indicador';
+            else if (qtdDedos === 0) gestoReconhecido = 'punho';
+            else if (qtdDedos === 5) gestoReconhecido = 'mao_aberta';
+            else if (qtdDedos === 2 && indicadorEsticado && mao[12].y < mao[9].y) gestoReconhecido = 'dois_dedos';
+            else if (qtdDedos === 3) gestoReconhecido = 'tres_dedos';
+            else if (polegarCima && qtdDedos === 0) gestoReconhecido = 'joia';
+            if (gestoReconhecido) {
+                const gesto = GESTOS_CAMERA.find(g => g.id === gestoReconhecido);
+                if (gesto) {
+                    const agora = Date.now();
+                    if (agora - ultimoTempoEnvio > 2000) {
+                        ultimoTempoEnvio = agora;
+                        enviarMensagem(gesto.texto);
+                        mostrarGestoDetectado(gesto.texto, 0.85);
+                    }
+                }
+            }
+        }
+        
+        function mostrarGestoDetectado(texto, confianca) {
+            const gestoDiv = document.getElementById('gestoDetectado');
+            const gestoTexto = document.getElementById('gestoTexto');
+            const confidenceFill = document.getElementById('confidenceFill');
+            gestoTexto.innerHTML = `${texto} (${Math.round(confianca * 100)}%)`;
+            confidenceFill.style.width = `${confianca * 100}%`;
+            gestoDiv.style.display = 'flex';
+            setTimeout(() => {
+                gestoDiv.style.opacity = '0.5';
+            }, 1500);
+            setTimeout(() => {
+                gestoDiv.style.display = 'none';
+                gestoDiv.style.opacity = '1';
+            }, 2500);
+        }
+        
+        socket.on('connect', () => {});
+        socket.on('resposta_fala', (data) => {
+            document.getElementById('mensagemMedico').innerHTML = `<i class="fas fa-comment-dots"></i> "${data.texto}"`;
+            adicionarHistorico('Médico', data.texto);
+        });
+        
+        function adicionarHistorico(quem, mensagem) {
+            const historico = document.getElementById('historico');
+            const item = document.createElement('div');
+            item.className = 'historico-item';
+            item.innerHTML = `<strong>${quem}:</strong> ${mensagem}<br><small>${new Date().toLocaleTimeString()}</small>`;
+            historico.insertBefore(item, historico.firstChild);
+            while (historico.children.length > 15) {
+                historico.removeChild(historico.lastChild);
+            }
+        }
+        
+        function popularFrases() {
+            const grid = document.getElementById('frasesGrid');
+            FRASES_RAPIDAS.forEach(frase => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-frase';
+                btn.innerHTML = `<i class="fas ${frase.icone}"></i> ${frase.nome}`;
+                btn.onclick = () => enviarMensagem(frase.texto);
+                grid.appendChild(btn);
+            });
+        }
+        
+        function popularSintomas() {
+            const grid = document.getElementById('gridSintomas');
+            SINTOMAS.forEach(sintoma => {
+                const card = document.createElement('div');
+                card.className = 'card-sinal';
+                card.onclick = () => enviarMensagem(sintoma.texto);
+                card.innerHTML = `<i class="fas ${sintoma.icone}" style="color: ${sintoma.cor}"></i><span>${sintoma.nome}</span>`;
+                grid.appendChild(card);
+            });
+        }
+        
+        function popularAlfabeto() {
+            const grid = document.getElementById('alfabetoGrid');
+            const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            letras.forEach(letra => {
+                const card = document.createElement('div');
+                card.className = 'letra-card';
+                card.textContent = letra;
+                card.onclick = () => enviarLetra(letra);
+                grid.appendChild(card);
+            });
+        }
+        
+        document.getElementById('btnLimpar').onclick = () => {
+            document.getElementById('historico').innerHTML = '<div class="historico-item">✨ Histórico limpo</div>';
+        };
+        
+        popularFrases();
+        popularSintomas();
+        popularAlfabeto();
+        inicializarMediaPipe();
+    </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "sintomas": [
+    {"id": "dor", "nome": "Dor", "texto": "Estou com dor", "icone": "fa-head-side-medical", "cor": "#dc3545"},
+    {"id": "febre", "nome": "Febre", "texto": "Estou com febre", "icone": "fa-temperature-high", "cor": "#ffc107"},
+    {"id": "nausea", "nome": "Náusea", "texto": "Estou com náusea", "icone": "fa-stomach", "cor": "#28a745"},
+    {"id": "cabeca", "nome": "Dor de Cabeça", "texto": "Minha cabeça dói", "icone": "fa-brain", "cor": "#17a2b8"},
+    {"id": "medicacao", "nome": "Medicação", "texto": "Preciso de medicação", "icone": "fa-capsules", "cor": "#6f42c1"},
+    {"id": "agua", "nome": "Sede", "texto": "Estou com sede", "icone": "fa-tint", "cor": "#0dcaf0"},
+    {"id": "banheiro", "nome": "Banheiro", "texto": "Preciso ir ao banheiro", "icone": "fa-toilet", "cor": "#fd7e14"},
+    {"id": "ajuda", "nome": "Ajuda", "texto": "Preciso de ajuda", "icone": "fa-handshake", "cor": "#dc3545"},
+    {"id": "obrigado", "nome": "Obrigado", "texto": "Obrigado", "icone": "fa-hand-peace", "cor": "#20c997"},
+    {"id": "sim", "nome": "Sim", "texto": "Sim", "icone": "fa-check-circle", "cor": "#198754"},
+    {"id": "nao", "nome": "Não", "texto": "Não", "icone": "fa-times-circle", "cor": "#dc3545"}
+  ],
+  "saudacoes": [
+    {"id": "ola", "nome": "Olá", "texto": "Olá, tudo bem?", "icone": "fa-hand-peace"},
+    {"id": "tchau", "nome": "Tchau", "texto": "Até logo", "icone": "fa-hand-peace"}
+  ]
+}

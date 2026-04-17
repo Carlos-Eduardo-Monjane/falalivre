@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FalaLivre - Médico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Cards corporativos */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+            margin-bottom: 24px;
+        }
+        
+        .card-header {
+            padding: 16px 24px;
+            background: #fafbfc;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-header i {
+            color: #4a90e2;
+            font-size: 1.2rem;
+        }
+        
+        .card-header h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .card-header p {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-left: auto;
+        }
+        
+        .card-body {
+            padding: 24px;
+        }
+        
+        /* Status bar */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-info i {
+            color: #4a90e2;
+        }
+        
+        .status-info span {
+            font-size: 0.85rem;
+            color: #2c3e50;
+        }
+        
+        .status-pulse {
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* Botão principal */
+        .btn-primary {
+            width: 100%;
+            padding: 14px 20px;
+            background: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            margin-bottom: 24px;
+        }
+        
+        .btn-primary:hover {
+            background: #3a7bc8;
+        }
+        
+        .btn-primary.ativo {
+            background: #dc3545;
+        }
+        
+        .btn-primary.ativo:hover {
+            background: #c82333;
+        }
+        
+        /* Área de mensagens - DESTAQUE */
+        .mensagem-box {
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .mensagem-box .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6c757d;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .mensagem-box .conteudo {
+            font-size: 1.2rem;
+            font-weight: 500;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        
+        .mensagem-enviada {
+            background: #e8f0fe;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .resposta-recebida {
+            background: #e8f5e9;
+            border-left: 4px solid #28a745;
+        }
+        
+        .btn-secondary {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 1px solid #4a90e2;
+            border-radius: 6px;
+            color: #4a90e2;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+        
+        .btn-secondary:hover {
+            background: #4a90e2;
+            color: white;
+        }
+        
+        /* Dica */
+        .dica-card {
+            background: #fff8e1;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: #856404;
+            border-left: 3px solid #ffc107;
+        }
+        
+        /* Histórico */
+        .historico {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        
+        .historico-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 3px solid #4a90e2;
+        }
+        
+        .historico-item .quem {
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .historico-item .quem-medico {
+            color: #4a90e2;
+        }
+        
+        .historico-item .quem-paciente {
+            color: #28a745;
+        }
+        
+        .historico-item .mensagem {
+            font-size: 0.85rem;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        
+        .historico-item .tempo {
+            font-size: 0.65rem;
+            color: #6c757d;
+        }
+        
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        /* Scrollbar */
+        .historico::-webkit-scrollbar {
+            width: 6px;
+        }
+        .historico::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .historico::-webkit-scrollbar-thumb {
+            background: #4a90e2;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-microphone-alt"></i>
+                <h1>FalaLivre - Médico</h1>
+                <p>Comunicação com pacientes surdos</p>
+            </div>
+            <div class="card-body">
+                
+                <!-- Status -->
+                <div class="status-bar">
+                    <div class="status-info">
+                        <i class="fas fa-circle"></i>
+                        <span id="statusText">Conectado ao paciente</span>
+                    </div>
+                    <div class="status-pulse"></div>
+                </div>
+                
+                <!-- Botão de conversa -->
+                <button class="btn-primary" id="btnEscuta">
+                    <i class="fas fa-microphone"></i>
+                    <span>Iniciar Conversa</span>
+                </button>
+                
+                <!-- Mensagem enviada pelo médico - DESTAQUE -->
+                <div class="mensagem-box mensagem-enviada">
+                    <div class="label">
+                        <i class="fas fa-paper-plane"></i>
+                        ÚLTIMA MENSAGEM ENVIADA
+                    </div>
+                    <div class="conteudo" id="ultimaFala">
+                        <i class="fas fa-microphone-slash"></i> Nenhuma mensagem ainda
+                    </div>
+                </div>
+                
+                <!-- Resposta do paciente - DESTAQUE -->
+                <div class="mensagem-box resposta-recebida">
+                    <div class="label">
+                        <i class="fas fa-hands-helping"></i>
+                        RESPOSTA DO PACIENTE
+                    </div>
+                    <div class="conteudo" id="respostaPaciente">
+                        <i class="fas fa-clock"></i> Aguardando resposta...
+                    </div>
+                    <button class="btn-secondary" id="btnOuvirResposta" style="display: none;">
+                        <i class="fas fa-volume-up"></i>
+                        Ouvir resposta do paciente
+                    </button>
+                </div>
+         
+                <!-- Histórico -->
+                <h3 style="margin: 20px 0 12px 0; font-size: 0.75rem; color: #6c757d; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-history"></i> HISTÓRICO DA CONVERSA
+                </h3>
+                <div class="historico" id="historico">
+                    <div class="historico-item">
+                        <div class="quem quem-medico">
+                            <i class="fas fa-info-circle"></i> SISTEMA
+                        </div>
+                        <div class="mensagem">Pronto para comunicação</div>
+                        <div class="tempo">Agora</div>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <i class="fas fa-shield-alt"></i> FalaLivre - Comunicação inclusiva
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let reconhecimentoVoz = null;
+        let escutando = false;
+        let ultimaRespostaPaciente = '';
+        
+        const statusText = document.getElementById('statusText');
+        const btnEscuta = document.getElementById('btnEscuta');
+        const btnEscutaSpan = btnEscuta.querySelector('span');
+        const btnEscutaIcon = btnEscuta.querySelector('i');
+        const ultimaFalaDiv = document.getElementById('ultimaFala');
+        const respostaPacienteDiv = document.getElementById('respostaPaciente');
+        const btnOuvirResposta = document.getElementById('btnOuvirResposta');
+        const historicoDiv = document.getElementById('historico');
+        
+        // Conexão Socket
+        socket.on('connect', () => {
+            statusText.innerHTML = 'Conectado ao paciente';
+            adicionarHistorico('Sistema', 'Conectado ao paciente', 'sistema');
+        });
+        
+        socket.on('disconnect', () => {
+            statusText.innerHTML = '⚠️ Desconectado';
+            adicionarHistorico('Sistema', 'Conexão perdida', 'sistema');
+        });
+        
+        // Receber resposta do paciente
+        socket.on('resposta_gesto', (data) => {
+            respostaPacienteDiv.innerHTML = `<i class="fas fa-hands"></i> "${data.texto}"`;
+            ultimaRespostaPaciente = data.texto;
+            btnOuvirResposta.style.display = 'flex';
+            adicionarHistorico('Paciente', data.texto, 'paciente');
+            falar(data.texto);
+        });
+        
+        // Função de fala
+        function falar(texto) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(texto);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        // Iniciar reconhecimento de voz
+        function iniciarEscuta() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Seu navegador não suporta reconhecimento de voz. Use Google Chrome.');
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            reconhecimentoVoz = new SpeechRecognition();
+            reconhecimentoVoz.lang = 'pt-BR';
+            reconhecimentoVoz.continuous = true;
+            reconhecimentoVoz.interimResults = false;
+            
+            reconhecimentoVoz.onstart = () => {
+                escutando = true;
+                btnEscuta.classList.add('ativo');
+                btnEscutaSpan.innerHTML = 'Parar Conversa';
+                btnEscutaIcon.className = 'fas fa-stop';
+                statusText.innerHTML = '🎤 Ouvindo... Fale agora';
+                adicionarHistorico('Sistema', 'Microfone ativado', 'sistema');
+            };
+            
+            reconhecimentoVoz.onresult = (event) => {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        const texto = event.results[i][0].transcript;
+                        if (texto && texto.trim().length > 0) {
+                            ultimaFalaDiv.innerHTML = `<i class="fas fa-comment"></i> "${texto}"`;
+                            socket.emit('fala_medico', { texto: texto });
+                            adicionarHistorico('Você', texto, 'medico');
+                            
+                            // Feedback visual
+                            const feedback = document.createElement('div');
+                            feedback.style.cssText = `
+                                position: fixed;
+                                bottom: 20px;
+                                right: 20px;
+                                background: #28a745;
+                                color: white;
+                                padding: 8px 16px;
+                                border-radius: 8px;
+                                font-size: 0.75rem;
+                                z-index: 1000;
+                            `;
+                            feedback.innerHTML = `<i class="fas fa-check"></i> Mensagem enviada`;
+                            document.body.appendChild(feedback);
+                            setTimeout(() => feedback.remove(), 2000);
+                        }
+                        break;
+                    }
+                }
+            };
+            
+            reconhecimentoVoz.onerror = (event) => {
+                console.error('Erro:', event.error);
+                statusText.innerHTML = '❌ Erro no microfone';
+                adicionarHistorico('Sistema', 'Erro no microfone', 'sistema');
+                pararEscuta();
+            };
+            
+            reconhecimentoVoz.onend = () => {
+                if (escutando) {
+                    setTimeout(() => {
+                        if (escutando) {
+                            try {
+                                reconhecimentoVoz.start();
+                            } catch(e) {
+                                pararEscuta();
+                            }
+                        }
+                    }, 100);
+                }
+            };
+            
+            reconhecimentoVoz.start();
+        }
+        
+        function pararEscuta() {
+            if (reconhecimentoVoz) {
+                try {
+                    reconhecimentoVoz.stop();
+                } catch(e) {}
+                reconhecimentoVoz = null;
+            }
+            escutando = false;
+            btnEscuta.classList.remove('ativo');
+            btnEscutaSpan.innerHTML = 'Iniciar Conversa';
+            btnEscutaIcon.className = 'fas fa-microphone';
+            statusText.innerHTML = 'Conectado ao paciente';
+            adicionarHistorico('Sistema', 'Microfone desativado', 'sistema');
+        }
+        
+        btnEscuta.addEventListener('click', () => {
+            if (!escutando) {
+                iniciarEscuta();
+            } else {
+                pararEscuta();
+            }
+        });
+        
+        btnOuvirResposta.addEventListener('click', () => {
+            if (ultimaRespostaPaciente) {
+                falar(ultimaRespostaPaciente);
+            }
+        });
+        
+        function adicionarHistorico(quem, mensagem, tipo) {
+            const historico = document.getElementById('historico');
+            const item = document.createElement('div');
+            item.className = 'historico-item';
+            
+            let icone = '';
+            let classe = '';
+            if (tipo === 'medico') {
+                icone = '<i class="fas fa-user-md"></i>';
+                classe = 'quem-medico';
+            } else if (tipo === 'paciente') {
+                icone = '<i class="fas fa-user"></i>';
+                classe = 'quem-paciente';
+            } else {
+                icone = '<i class="fas fa-info-circle"></i>';
+                classe = 'quem-medico';
+            }
+            
+            item.innerHTML = `
+                <div class="quem ${classe}">
+                    ${icone} ${quem}
+                </div>
+                <div class="mensagem">${mensagem}</div>
+                <div class="tempo">${new Date().toLocaleTimeString()}</div>
+            `;
+            historico.insertBefore(item, historico.firstChild);
+            while (historico.children.length > 30) {
+                historico.removeChild(historico.lastChild);
+            }
+        }
+        
+        adicionarHistorico('Sistema', 'Clique em "Iniciar Conversa" para começar', 'sistema');
+    </script>
+</body>
+</html>

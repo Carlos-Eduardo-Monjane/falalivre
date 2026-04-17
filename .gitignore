@@ -1,0 +1,9 @@
+# Dataset (imagens grandes)
+dataset/
+dataset/*
+dataset/**/*.png
+dataset/**/*.jpg
+dataset/**/*.jpeg
+dataset/raw/
+dataset/training/
+dataset/validation/
