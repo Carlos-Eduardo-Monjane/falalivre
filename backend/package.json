@@ -1,5 +1,5 @@
 {
-  "name": "backend-comunicacao-hosp",
+  "name": "fala-livre-backend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -9,5 +9,8 @@
     "express": "^4.18.2",
     "socket.io": "^4.6.1",
     "cors": "^2.8.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
